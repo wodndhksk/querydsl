@@ -129,9 +129,17 @@ public class QuerydslBasicTest {
         assertThat(findMember.get(0).getUsername()).isEqualTo("member5");
         assertThat(findMember.get(1).getUsername()).isEqualTo("member6");
         assertThat(findMember.get(2).getUsername()).isEqualTo(null);
-
-
     }
 
+    @Test
+    public void paging1() {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .orderBy(member.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetch();
 
+        assertThat(result.size()).isEqualTo(2);
+    }
 }
