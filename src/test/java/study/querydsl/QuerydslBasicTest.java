@@ -8,11 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
-import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static study.querydsl.entity.QMember.*;
+import static study.querydsl.entity.QMember.member;
 
 @SpringBootTest
 @Transactional
@@ -65,6 +66,32 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
-
     }
+
+    @Test
+    public void search() {
+        Member findMember = queryFactory.selectFrom(member)
+                .where(member.username.eq("member1").and(member.age.eq(10)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    /**
+     *  where 조건에서 and 를 표현하는 또 다른 방법 (만약 wherer 조건 안에 null 이 들어가면 무시함. 동적쿼리 만들때 유용)
+     */
+    @Test
+    public void searchAndParam() {
+        Member findMember = queryFactory.selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        (member.age.eq(10))
+                )
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+
+
 }
