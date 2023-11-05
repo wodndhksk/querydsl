@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -568,6 +569,36 @@ public class QuerydslBasicTest {
         for (UserDto userDto : result) {
             System.out.println("userDto = " + userDto);
         }
+    }
+
+    /**
+     * Projections.constructor 와 무슨 차이인가?
+     * 1. 만약 생성자의 매개 변수를 잘못하여 추가로 넣었을때 constructor 방식은
+     *    Runtime 에러 발생 (해당 코드가 실행되야 오류발생)
+     *
+     * 2. QueryProjection 의 Q 타입 dto 방식은 컴파일 단계에서 오류 발생
+     *
+     *  -장점 :  Runtime 오류를 발생시키는 방식은 치명적인 실수를 하더라도 알기 쉽지 않지만
+     *  컴파일 단계에서 오류가 발생한다면 미리 알고 방지를 할 수 있음
+     *
+     *  -단점 : Dto 를 위한 Q 클래스가 생성됨. 또한 Dto 가 querydsl 에 의존하게 되므로
+     *        Querydsl 라이브러리를 사용하지 않게 된다면 dto 에서 오류가 발생한다.
+     *        그리고 아키텍처 관점으로 dto가 querydsl 에게 의존적으로 설계가 될 수 있다. (dto가 순수한 상태가 아니게됨)
+     *
+     *
+     *
+     */
+    @Test
+    public void findDtoByQueryProjection() {
+        List<MemberDto> result = queryFactory
+                .select(new QMemberDto(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+
     }
 
 }
