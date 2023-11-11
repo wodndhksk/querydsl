@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -654,8 +655,63 @@ public class QuerydslBasicTest {
         return ageCond != null ? member.age.eq(ageCond) : null;
     }
 
-    private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+    private BooleanExpression isServiceable(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
+    /**
+     * 벌크 업데이트 시 영속성 컨텍스트와 데이터 불일치가 발생함
+     * 따라서 em.flush, em.clear 로 영속성 컨텍스트를 초기화 하여 데이터를 일치시킨다.
+     */
+    @Test
+//    @Commit // DB에서 확인용으로 임시 추가
+    public void bulkUpdate() {
+
+        //member1 = 10 -> 비회원 (변경)
+        //member2 = 20 -> 비회원 (변경)
+        //member3 = 30 -> (유지)
+        //member3 = 40 -> (유지)
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member)
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+
+    /**
+     * update 시 데이터 더하기, 빼기
+     */
+    @Test
+    public void bulkAdd(){
+        queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1)) //더하기
+//                .set(member.age, member.age.add(-1)) // 빼기
+//                .set(member.age, member.age.multiply(2)) // 2 곱하기
+                .execute();
+    }
+
+    /**
+     * 삭제 쿼리
+     */
+    @Test
+    public void bulkDelete() {
+        queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
     }
 
 
