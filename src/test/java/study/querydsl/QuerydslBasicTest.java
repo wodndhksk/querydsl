@@ -714,5 +714,37 @@ public class QuerydslBasicTest {
                 .execute();
     }
 
+    @Test
+    public void sqlFunction() {
+        List<String> result = queryFactory
+                .select(Expressions.stringTemplate("function('replace',{0}, {1}, {2})"
+                        , member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    /**
+     *  ANSI 표준문은 querydsl 에서 기본적으로 제공하는 경우가 많다.
+     *  아래 주석 부분을 .lower() 로 대체하여 사용 (결과는 두개 다 같다)
+     */
+    @Test
+    public void sqlFunction2() {
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member)
+//                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})"
+//                        , member.username))) // sql function lower
+                .where(member.username.eq(member.username.lower())) // querydsl lower
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+
 
 }
