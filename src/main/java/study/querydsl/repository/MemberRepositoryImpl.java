@@ -117,17 +117,17 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
                 .limit(pageable.getPageSize())
                 .fetch();
 
+        // count 쿼리 최적화
         Long total = queryFactory
-                .select(member.count())
+                .select(member.countDistinct())
                 .from(member)
-                .leftJoin(member.team, team)
                 .where(
                         usernameEq(condition.getUsername()),
                         teamNameEq(condition.getTeamName()),
                         ageGoe(condition.getAgeGoe()),
                         ageLoe(condition.getAgeLoe())
                 )
-                .fetchFirst();
+                .fetchOne();
 
 
         log.info("getContentSize={}", content.size());
